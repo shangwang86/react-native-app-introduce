@@ -137,6 +137,28 @@ export default class AppIntro extends Component {
     this.props.onNextBtnClick(context.state.index);
   }
 
+  onSkipBtnClick = (context) => {
+
+    if (this.props.goLastPage == false)
+      return;
+    if (context.state.isScrolling || context.state.total < 2) return;
+    const state = context.state;
+    const diff = context.state.total - 1;
+    let x = 0;
+    if (state.dir === 'x') x = diff * state.width;
+    if (Platform.OS === 'ios') {
+      context.refs.scrollView.scrollTo({ y: 0, x });
+    } else {
+      context.refs.scrollView.setPage(diff);
+      context.onScrollEnd({
+        nativeEvent: {
+          position: diff,
+        },
+      });
+    }
+    this.props.onSkipBtnClick(diff);
+  }
+
   setDoneBtnOpacity = (value) => {
     Animated.timing(
       this.state.doneFadeOpacity,
@@ -189,6 +211,9 @@ export default class AppIntro extends Component {
   renderPagination = (index, total, context) => {
     let isDoneBtnShow;
     let isSkipBtnShow;
+
+    index=Math.round(index);
+
     if (index === total - 1) {
       this.setDoneBtnOpacity(1);
       this.setSkipBtnOpacity(0);
@@ -209,7 +234,7 @@ export default class AppIntro extends Component {
           {...this.state}
           isSkipBtnShow={isSkipBtnShow}
           styles={this.styles}
-          onSkipBtnClick={() => this.props.onSkipBtnClick(index)} /> :
+          onSkipBtnClick={this.onSkipBtnClick.bind(this, context)} /> :
           <View style={this.styles.btnContainer} />
         }
         {this.props.showDots && RenderDots(index, total, {
@@ -298,7 +323,7 @@ export default class AppIntro extends Component {
   }
 
   isToTintStatusBar() {
-    return this.props.pageArray && this.props.pageArray.length > 0 && Platform.OS === 'android'
+    return this.props.pageArray && this.props.pageArray.length > 0// && Platform.OS === 'android'
   }
 
   render() {
@@ -309,27 +334,7 @@ export default class AppIntro extends Component {
     if (pageArray.length > 0) {
       pages = pageArray.map((page, i) => this.renderBasicSlidePage(i, page));
     } else {
-      if (Platform.OS === 'ios') {
-        pages = childrens.map((children, i) => this.renderChild(children, i, i));
-      } else {
-        androidPages = childrens.map((children, i) => {
-          const { transform } = this.getTransform(i, -windowsWidth / 3 * 2, 1);
-          pages.push(<View key={i} />);
-          return (
-            <Animated.View key={i} style={[{
-              position: 'absolute',
-              height: windowsHeight,
-              width: windowsWidth,
-              top: 0,
-            }, {
-              ...transform[0],
-            }]}
-            >
-              {this.renderChild(children, i, i)}
-            </Animated.View>
-          );
-        });
-      }
+      pages = childrens.map((children, i) => this.renderChild(children, i, i));
     }
 
     if (this.isToTintStatusBar()) {
@@ -388,6 +393,7 @@ AppIntro.propTypes = {
   showSkipButton: PropTypes.bool,
   showDoneButton: PropTypes.bool,
   showDots: PropTypes.bool,
+  goLastPage: PropTypes.bool,
 };
 
 AppIntro.defaultProps = {
@@ -406,5 +412,6 @@ AppIntro.defaultProps = {
   defaultIndex: 0,
   showSkipButton: true,
   showDoneButton: true,
-  showDots: true
+  showDots: true,
+  goLastPage: false
 };

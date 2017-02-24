@@ -138,6 +138,9 @@ export default class AppIntro extends Component {
   }
 
   onSkipBtnClick = (context) => {
+
+    if (this.props.goLastPage == false)
+      return;
     if (context.state.isScrolling || context.state.total < 2) return;
     const state = context.state;
     const diff = context.state.total - 1;
@@ -208,6 +211,9 @@ export default class AppIntro extends Component {
   renderPagination = (index, total, context) => {
     let isDoneBtnShow;
     let isSkipBtnShow;
+
+    index=Math.round(index);
+
     if (index === total - 1) {
       this.setDoneBtnOpacity(1);
       this.setSkipBtnOpacity(0);
@@ -387,6 +393,7 @@ AppIntro.propTypes = {
   showSkipButton: PropTypes.bool,
   showDoneButton: PropTypes.bool,
   showDots: PropTypes.bool,
+  goLastPage: PropTypes.bool,
 };
 
 AppIntro.defaultProps = {
@@ -405,5 +412,6 @@ AppIntro.defaultProps = {
   defaultIndex: 0,
   showSkipButton: true,
   showDoneButton: true,
-  showDots: true
+  showDots: true,
+  goLastPage: false
 };
